@@ -1,0 +1,26 @@
+{
+  "name": "Harate Cafe Reconciliation Dashboard",
+  "short_name": "Harate Recon",
+  "description": "Weekly sales reconciliation and analytics for Harate Cafe",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2B4C7E",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "categories": ["business", "finance", "productivity"],
+  "lang": "en",
+  "icons": [
+    {
+      "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==",
+      "sizes": "1x1",
+      "type": "image/png"
+    }
+  ],
+  "features": [
+    "cross-origin-isolated"
+  ],
+  "permissions": [
+    "storage"
+  ]
+}

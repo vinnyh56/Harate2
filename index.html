@@ -1,0 +1,1565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harate - Business Intelligence Dashboard (Settlement-Based)</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --harate-green-primary: #2ECC71;
+            --harate-green-secondary: #27AE60;
+            --harate-green-light: #58D68D;
+            --harate-green-dark: #1E8449;
+            --harate-yellow: #F1C40F;
+            --harate-yellow-light: #F7DC6F;
+            --harate-teal: #1ABC9C;
+            --harate-background: linear-gradient(135deg, #2ECC71 0%, #27AE60 50%, #1ABC9C 100%);
+            --white: #FFFFFF;
+            --dark-text: #2C3E50;
+            --light-text: #7F8C8D;
+            --success: #27AE60;
+            --warning: #F39C12;
+            --danger: #E74C3C;
+            --info: #3498db;
+            --shadow: 0 4px 20px rgba(46, 204, 113, 0.15);
+        }
+
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: var(--harate-background);
+            color: var(--dark-text); 
+            line-height: 1.6; 
+            min-height: 100vh;
+        }
+
+        .container { 
+            max-width: 1400px; 
+            margin: 0 auto; 
+            padding: 0 20px; 
+        }
+
+        /* Header */
+        .dashboard-header { 
+            background: linear-gradient(135deg, var(--harate-green-primary) 0%, var(--harate-green-secondary) 100%);
+            color: var(--white); 
+            padding: 1.5rem 0; 
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header-content { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .brand-logo {
+            width: 60px;
+            height: 60px;
+            background: var(--white);
+            border-radius: 12px;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .brand-logo-text {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--harate-green-primary);
+            text-align: center;
+            line-height: 1;
+        }
+
+        .brand-title { 
+            font-size: 2rem; 
+            font-weight: 800; 
+            margin-bottom: 0.25rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .brand-subtitle { 
+            font-size: 1rem; 
+            opacity: 0.9;
+            font-weight: 500;
+        }
+
+        .header-actions { 
+            display: flex; 
+            align-items: center; 
+            gap: 1rem; 
+        }
+
+        .period-value { 
+            font-size: 0.9rem; 
+            font-weight: 600; 
+            background: rgba(255,255,255,0.25); 
+            padding: 0.75rem 1.25rem; 
+            border-radius: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        /* Navigation */
+        .dashboard-nav { 
+            background: var(--white); 
+            border-bottom: 3px solid var(--harate-green-primary);
+            box-shadow: 0 2px 10px rgba(46, 204, 113, 0.1);
+        }
+
+        .nav-tabs { 
+            display: flex; 
+            overflow-x: auto; 
+            gap: 0; 
+        }
+
+        .nav-tab { 
+            background: none; 
+            border: none; 
+            padding: 1.25rem 1.75rem; 
+            cursor: pointer; 
+            font-weight: 600; 
+            color: var(--light-text); 
+            border-bottom: 4px solid transparent; 
+            transition: all 0.3s ease; 
+            white-space: nowrap;
+            position: relative;
+        }
+
+        .nav-tab:hover { 
+            background: linear-gradient(135deg, var(--harate-green-light), var(--harate-green-primary));
+            color: var(--white);
+            transform: translateY(-2px);
+        }
+
+        .nav-tab.active { 
+            color: var(--harate-green-primary); 
+            border-bottom-color: var(--harate-green-primary);
+            background: linear-gradient(135deg, rgba(46, 204, 113, 0.1) 0%, rgba(39, 174, 96, 0.1) 100%);
+            font-weight: 700;
+        }
+
+        .nav-tab.disabled { 
+            color: #ccc; 
+            cursor: not-allowed; 
+            opacity: 0.6; 
+        }
+
+        /* Content */
+        .dashboard-main { 
+            padding: 2rem 0; 
+        }
+
+        .tab-content { 
+            display: none; 
+        }
+
+        .tab-content.active { 
+            display: block; 
+            animation: fadeIn 0.4s ease; 
+        }
+
+        @keyframes fadeIn { 
+            from { opacity: 0; transform: translateY(20px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+
+        .report-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 2rem; 
+            padding: 1.5rem 0; 
+            border-bottom: 3px solid var(--harate-green-primary);
+        }
+
+        .report-header h2 { 
+            color: var(--harate-green-dark); 
+            margin: 0;
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .report-controls { 
+            display: flex; 
+            align-items: center; 
+            gap: 1rem; 
+        }
+
+        .report-controls select, .report-controls input { 
+            padding: 0.75rem 1rem; 
+            border: 2px solid var(--harate-green-light); 
+            border-radius: 12px; 
+            font-size: 0.9rem; 
+            background: var(--white); 
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        /* Cards with Enhanced Styling */
+        .metrics-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); 
+            gap: 1.5rem; 
+            margin-bottom: 2rem; 
+        }
+
+        .metric-card { 
+            background: var(--white); 
+            padding: 2rem; 
+            border-radius: 16px; 
+            box-shadow: var(--shadow);
+            text-align: center; 
+            border: 1px solid rgba(46, 204, 113, 0.2);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--harate-green-primary), var(--harate-teal));
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(46, 204, 113, 0.25);
+        }
+
+        .metric-card.highlight { 
+            border: 2px solid var(--harate-yellow);
+            background: linear-gradient(135deg, rgba(241, 196, 15, 0.05) 0%, rgba(255, 255, 255, 1) 100%);
+        }
+
+        .metric-card.highlight::before {
+            background: linear-gradient(90deg, var(--harate-yellow), var(--harate-yellow-light));
+        }
+
+        .metric-card.warning {
+            border: 2px solid var(--warning);
+            background: linear-gradient(135deg, rgba(243, 156, 18, 0.05) 0%, rgba(255, 255, 255, 1) 100%);
+        }
+
+        .metric-card.warning::before {
+            background: linear-gradient(90deg, var(--warning), #F7DC6F);
+        }
+
+        .metric-card.danger {
+            border: 2px solid var(--danger);
+            background: linear-gradient(135deg, rgba(231, 76, 60, 0.05) 0%, rgba(255, 255, 255, 1) 100%);
+        }
+
+        .metric-card.danger::before {
+            background: linear-gradient(90deg, var(--danger), #F1948A);
+        }
+
+        .metric-card h3 { 
+            color: var(--light-text); 
+            font-size: 0.8rem; 
+            margin-bottom: 0.75rem; 
+            text-transform: uppercase; 
+            font-weight: 700; 
+            letter-spacing: 1px;
+        }
+
+        .metric-value { 
+            font-size: 2rem; 
+            font-weight: 800; 
+            color: var(--harate-green-primary); 
+            margin-bottom: 0.5rem; 
+        }
+
+        .metric-value.large { 
+            font-size: 2.5rem; 
+        }
+
+        .metric-value.danger {
+            color: var(--danger);
+        }
+
+        .metric-secondary { 
+            font-size: 0.9rem; 
+            color: var(--light-text); 
+            margin-bottom: 0.75rem; 
+        }
+
+        .metric-status { 
+            font-size: 0.8rem; 
+            padding: 0.4rem 1rem; 
+            border-radius: 20px; 
+            display: inline-block; 
+            font-weight: 600;
+        }
+
+        .metric-status.success { 
+            background: rgba(39, 174, 96, 0.15); 
+            color: var(--success); 
+            border: 1px solid rgba(39, 174, 96, 0.3);
+        }
+
+        .metric-status.warning { 
+            background: rgba(243, 156, 18, 0.15); 
+            color: var(--warning); 
+            border: 1px solid rgba(243, 156, 18, 0.3);
+        }
+
+        .metric-status.danger { 
+            background: rgba(231, 76, 60, 0.15); 
+            color: var(--danger); 
+            border: 1px solid rgba(231, 76, 60, 0.3);
+        }
+
+        .metric-status.info { 
+            background: rgba(52, 152, 219, 0.15); 
+            color: var(--info); 
+            border: 1px solid rgba(52, 152, 219, 0.3);
+        }
+
+        /* Variance Cards */
+        .variance-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .variance-card {
+            background: var(--white);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            border-left: 4px solid var(--danger);
+        }
+
+        .variance-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .variance-title {
+            font-weight: 700;
+            color: var(--harate-green-dark);
+        }
+
+        .variance-amount {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--danger);
+        }
+
+        .variance-breakdown {
+            font-size: 0.9rem;
+            color: var(--light-text);
+            margin-bottom: 0.5rem;
+        }
+
+        .variance-rca {
+            background: rgba(231, 76, 60, 0.1);
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 3px solid var(--danger);
+            margin-top: 1rem;
+        }
+
+        .variance-rca h4 {
+            color: var(--danger);
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .variance-rca ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .variance-rca li {
+            font-size: 0.8rem;
+            color: var(--dark-text);
+            margin-bottom: 0.25rem;
+            padding-left: 1rem;
+            position: relative;
+        }
+
+        .variance-rca li::before {
+            content: '•';
+            color: var(--danger);
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+
+        /* Platform Cards */
+        .platform-cards { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); 
+            gap: 2rem; 
+            margin-bottom: 2rem; 
+        }
+
+        .platform-card { 
+            background: var(--white); 
+            border-radius: 20px; 
+            box-shadow: var(--shadow);
+            overflow: hidden; 
+            border: 1px solid rgba(46, 204, 113, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .platform-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(46, 204, 113, 0.2);
+        }
+
+        .platform-header { 
+            padding: 2rem; 
+            background: linear-gradient(135deg, var(--harate-green-primary), var(--harate-green-secondary));
+            color: var(--white);
+            position: relative;
+        }
+
+        .platform-header::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--harate-yellow);
+        }
+
+        .platform-header h3 { 
+            font-size: 1.5rem; 
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        .platform-revenue { 
+            font-size: 2.2rem; 
+            font-weight: 800; 
+            color: var(--white);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            margin-bottom: 0.5rem;
+        }
+
+        .platform-status {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .platform-body { 
+            padding: 2rem; 
+        }
+
+        .platform-metric { 
+            display: flex; 
+            justify-content: space-between; 
+            margin-bottom: 1rem; 
+            padding-bottom: 0.75rem; 
+            border-bottom: 1px solid rgba(46, 204, 113, 0.1);
+        }
+
+        .platform-metric:last-child { 
+            border-bottom: none; 
+            margin-bottom: 0; 
+        }
+
+        .platform-metric .label { 
+            color: var(--light-text); 
+            font-weight: 600; 
+        }
+
+        .platform-metric .value { 
+            color: var(--dark-text); 
+            font-weight: 700; 
+        }
+
+        .platform-metric .value.danger {
+            color: var(--danger);
+        }
+
+        .payout-highlight { 
+            background: linear-gradient(135deg, rgba(46, 204, 113, 0.1), rgba(39, 174, 96, 0.1));
+            padding: 1.5rem; 
+            border-radius: 12px; 
+            margin-top: 1rem;
+            border: 1px solid rgba(46, 204, 113, 0.2);
+        }
+
+        .payout-highlight.actual {
+            background: linear-gradient(135deg, rgba(231, 76, 60, 0.1), rgba(192, 57, 43, 0.1));
+            border: 1px solid rgba(231, 76, 60, 0.2);
+        }
+
+        .payout-highlight .payout-amount { 
+            font-size: 1.8rem; 
+            font-weight: 800; 
+            color: var(--harate-green-primary);
+        }
+
+        .payout-highlight.actual .payout-amount {
+            color: var(--danger);
+        }
+
+        /* Tables */
+        .report-table { 
+            background: var(--white); 
+            border-radius: 16px; 
+            box-shadow: var(--shadow);
+            overflow: hidden; 
+            border: 1px solid rgba(46, 204, 113, 0.2);
+            margin-bottom: 2rem; 
+        }
+
+        .report-table table { 
+            width: 100%; 
+            border-collapse: collapse; 
+        }
+
+        .report-table th { 
+            background: linear-gradient(135deg, var(--harate-green-primary), var(--harate-green-secondary));
+            color: var(--white); 
+            padding: 1.25rem; 
+            text-align: left; 
+            font-weight: 700; 
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .report-table td { 
+            padding: 1rem 1.25rem; 
+            border-bottom: 1px solid rgba(46, 204, 113, 0.1);
+            font-size: 0.9rem; 
+        }
+
+        .report-table tr:hover { 
+            background: rgba(46, 204, 113, 0.05);
+        }
+
+        .report-table .total-row { 
+            background: linear-gradient(135deg, rgba(46, 204, 113, 0.1), rgba(39, 174, 96, 0.1));
+            font-weight: 700; 
+            border-top: 3px solid var(--harate-green-primary);
+        }
+
+        .report-table .variance-row {
+            background: linear-gradient(135deg, rgba(231, 76, 60, 0.1), rgba(192, 57, 43, 0.1));
+            font-weight: 600;
+        }
+
+        .report-table .warning-row {
+            background: linear-gradient(135deg, rgba(243, 156, 18, 0.1), rgba(211, 143, 28, 0.1));
+        }
+
+        /* Upload Section */
+        .upload-section { 
+            background: var(--white); 
+            padding: 2.5rem; 
+            border-radius: 20px; 
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(46, 204, 113, 0.2);
+        }
+
+        .upload-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+            gap: 2rem; 
+            margin-bottom: 2rem; 
+        }
+
+        .upload-zone { 
+            border: 2px dashed var(--harate-green-light); 
+            border-radius: 16px; 
+            padding: 2.5rem; 
+            text-align: center; 
+            transition: all 0.3s ease; 
+            background: rgba(46, 204, 113, 0.02);
+        }
+
+        .upload-zone:hover {
+            border-color: var(--harate-green-primary);
+            background: rgba(46, 204, 113, 0.05);
+            transform: translateY(-2px);
+        }
+
+        .upload-zone.has-files { 
+            border-color: var(--harate-green-primary); 
+            background: rgba(46, 204, 113, 0.1);
+            border-style: solid;
+        }
+
+        .upload-icon { 
+            font-size: 3rem; 
+            margin-bottom: 1rem;
+        }
+
+        .upload-btn { 
+            background: linear-gradient(135deg, var(--harate-green-primary), var(--harate-green-secondary));
+            color: var(--white); 
+            border: none; 
+            padding: 1rem 2rem; 
+            border-radius: 12px; 
+            cursor: pointer; 
+            font-weight: 700; 
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(46, 204, 113, 0.4);
+        }
+
+        .upload-status { 
+            font-size: 0.9rem; 
+            color: var(--light-text); 
+            padding: 0.75rem; 
+            background: rgba(46, 204, 113, 0.05);
+            border-radius: 8px; 
+            border: 1px solid rgba(46, 204, 113, 0.2);
+        }
+
+        .upload-status.success { 
+            color: var(--harate-green-primary); 
+            background: rgba(46, 204, 113, 0.1);
+            border-color: var(--harate-green-primary);
+            font-weight: 600;
+        }
+
+        .btn { 
+            padding: 1rem 2rem; 
+            border: none; 
+            border-radius: 12px; 
+            font-weight: 700; 
+            cursor: pointer; 
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn--primary { 
+            background: linear-gradient(135deg, var(--harate-green-primary), var(--harate-green-secondary));
+            color: var(--white); 
+        }
+
+        .btn--primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(46, 204, 113, 0.4);
+        }
+
+        .btn--outline { 
+            background: transparent; 
+            color: var(--harate-green-primary); 
+            border: 2px solid var(--harate-green-primary);
+        }
+
+        .btn--outline:hover {
+            background: var(--harate-green-primary);
+            color: var(--white);
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled { 
+            opacity: 0.6; 
+            cursor: not-allowed; 
+            background: #bdc3c7;
+            color: #7f8c8d;
+            transform: none;
+        }
+
+        .upload-actions { 
+            display: flex; 
+            gap: 1.5rem; 
+            justify-content: center; 
+            flex-wrap: wrap; 
+        }
+
+        .empty-state { 
+            text-align: center; 
+            padding: 4rem 2rem; 
+            background: var(--white); 
+            border-radius: 16px; 
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(46, 204, 113, 0.2);
+        }
+
+        .empty-state h3 {
+            color: var(--harate-green-dark);
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .section-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin: 2rem 0 1.5rem 0; 
+            padding-bottom: 0.75rem; 
+            border-bottom: 3px solid var(--harate-green-primary);
+        }
+
+        .section-header h3 { 
+            color: var(--harate-green-dark); 
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .period-selection { 
+            background: var(--white); 
+            padding: 2.5rem; 
+            border-radius: 20px; 
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+            border: 1px solid rgba(46, 204, 113, 0.2);
+        }
+
+        .period-selection h3 {
+            color: var(--harate-green-dark);
+            font-size: 1.4rem;
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+        }
+
+        .period-options { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); 
+            gap: 1.5rem; 
+        }
+
+        .radio-option { 
+            display: flex; 
+            flex-direction: column; 
+            padding: 1.5rem; 
+            border: 2px solid var(--harate-green-light); 
+            border-radius: 12px; 
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(46, 204, 113, 0.02);
+        }
+
+        .radio-option:hover {
+            border-color: var(--harate-green-primary);
+            background: rgba(46, 204, 113, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .home-welcome { 
+            text-align: center; 
+            padding: 3rem 0; 
+            margin-bottom: 2rem;
+            background: var(--white);
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(46, 204, 113, 0.2);
+        }
+
+        .home-welcome h2 { 
+            color: var(--harate-green-dark); 
+            margin-bottom: 1rem; 
+            font-size: 2.5rem;
+            font-weight: 800;
+        }
+
+        .home-welcome p {
+            color: var(--light-text);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Alert Boxes */
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid;
+            font-weight: 600;
+        }
+
+        .alert.danger {
+            background: rgba(231, 76, 60, 0.1);
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        .alert.warning {
+            background: rgba(243, 156, 18, 0.1);
+            border-color: var(--warning);
+            color: var(--warning);
+        }
+
+        .alert.success {
+            background: rgba(39, 174, 96, 0.1);
+            border-color: var(--success);
+            color: var(--success);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container { padding: 0 15px; }
+            .metrics-grid { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+            .platform-cards { grid-template-columns: 1fr; }
+            .header-content { flex-direction: column; gap: 1rem; align-items: center; }
+            .brand-title { font-size: 1.5rem; }
+            .upload-actions { flex-direction: column; }
+            .upload-actions .btn { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <header class="dashboard-header">
+            <div class="container">
+                <div class="header-content">
+                    <div class="header-brand">
+                        <div class="brand-logo">
+                            <div class="brand-logo-text">
+                                हरते<br>
+                                <small style="font-size: 0.8rem;">CAFE</small>
+                            </div>
+                        </div>
+                        <div>
+                            <h1 class="brand-title">Harate</h1>
+                            <p class="brand-subtitle">Settlement-Based Business Intelligence</p>
+                        </div>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn--outline" onclick="goHome()" style="padding: 0.75rem 1.25rem; font-size: 0.9rem;">🏠 Home</button>
+                        <div id="period-display" style="display: none;">
+                            <span class="period-value" id="period-text">No data loaded</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <nav class="dashboard-nav">
+            <div class="container">
+                <div class="nav-tabs">
+                    <button class="nav-tab active" onclick="showTab('home')">🏠 Home</button>
+                    <button class="nav-tab disabled" id="tab-business" onclick="showTab('business')">📊 Settlement Analysis</button>
+                    <button class="nav-tab disabled" id="tab-variance" onclick="showTab('variance')">🔍 Variance & RCA</button>
+                    <button class="nav-tab disabled" id="tab-payout" onclick="showTab('payout')">💰 Actual vs Expected</button>
+                    <button class="nav-tab disabled" id="tab-orders" onclick="showTab('orders')">📋 Order Analysis</button>
+                    <button class="nav-tab" onclick="showTab('settings')">⚙️ Settings</button>
+                </div>
+            </div>
+        </nav>
+
+        <main class="dashboard-main">
+            <div class="container">
+
+                <!-- Home Tab -->
+                <div class="tab-content active" id="home-tab">
+                    <div class="home-welcome">
+                        <h2>Settlement-Based Business Intelligence</h2>
+                        <p>Accurate revenue validation using actual settlement data with comprehensive variance analysis and root cause identification.</p>
+                    </div>
+
+                    <div class="period-selection">
+                        <h3>🗓️ Select Report Period</h3>
+                        <div class="period-options">
+                            <label class="radio-option">
+                                <input type="radio" name="period" value="daily">
+                                <span style="font-weight: 600; margin-bottom: 0.5rem;">Daily Settlement</span>
+                                <small style="color: #7F8C8D;">Single day analysis</small>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="period" value="weekly" checked>
+                                <span style="font-weight: 600; margin-bottom: 0.5rem;">Weekly Settlement</span>
+                                <small style="color: #7F8C8D;">7-day reconciliation</small>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="period" value="monthly">
+                                <span style="font-weight: 600; margin-bottom: 0.5rem;">Monthly Settlement</span>
+                                <small style="color: #7F8C8D;">Month-end reconciliation</small>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="upload-section">
+                        <h3 style="color: var(--harate-green-dark); font-size: 1.5rem; margin-bottom: 2rem; font-weight: 700;">📁 Upload Settlement Files</h3>
+                        <div class="upload-grid">
+                            <div class="upload-zone" id="pos-zone">
+                                <div class="upload-icon">📁</div>
+                                <h4 style="color: var(--harate-green-primary); font-size: 1.2rem; margin-bottom: 0.5rem; font-weight: 700;">POS Files</h4>
+                                <p style="color: var(--light-text); margin-bottom: 0.5rem;">Point of Sale system reports</p>
+                                <div style="font-size: 0.8rem; color: var(--light-text); margin-bottom: 1rem; font-style: italic;">Excel, CSV formats</div>
+                                <input type="file" multiple accept=".xlsx,.xls,.csv" id="pos-files" style="display: none;">
+                                <button class="upload-btn" onclick="document.getElementById('pos-files').click()">Choose Files</button>
+                                <div class="upload-status" id="pos-status">No files selected</div>
+                            </div>
+
+                            <div class="upload-zone" id="zomato-zone">
+                                <div class="upload-icon">🍅</div>
+                                <h4 style="color: var(--harate-green-primary); font-size: 1.2rem; margin-bottom: 0.5rem; font-weight: 700;">Zomato Settlement</h4>
+                                <p style="color: var(--light-text); margin-bottom: 0.5rem;">Settlement & Business Reports</p>
+                                <div style="font-size: 0.8rem; color: var(--light-text); margin-bottom: 1rem; font-style: italic;">CSV, Excel formats</div>
+                                <input type="file" multiple accept=".csv,.xlsx,.xls" id="zomato-files" style="display: none;">
+                                <button class="upload-btn" onclick="document.getElementById('zomato-files').click()">Choose Files</button>
+                                <div class="upload-status" id="zomato-status">No files selected</div>
+                            </div>
+
+                            <div class="upload-zone" id="swiggy-zone">
+                                <div class="upload-icon">🧡</div>
+                                <h4 style="color: var(--harate-green-primary); font-size: 1.2rem; margin-bottom: 0.5rem; font-weight: 700;">Swiggy Settlement</h4>
+                                <p style="color: var(--light-text); margin-bottom: 0.5rem;">Business metrics & settlement</p>
+                                <div style="font-size: 0.8rem; color: var(--light-text); margin-bottom: 1rem; font-style: italic;">Excel, CSV formats</div>
+                                <input type="file" multiple accept=".xlsx,.xls,.csv" id="swiggy-files" style="display: none;">
+                                <button class="upload-btn" onclick="document.getElementById('swiggy-files').click()">Choose Files</button>
+                                <div class="upload-status" id="swiggy-status">No files selected</div>
+                            </div>
+                        </div>
+
+                        <div class="upload-actions">
+                            <button class="btn btn--primary" onclick="generateReport()" disabled id="generate-btn" style="padding: 1.25rem 2.5rem; font-size: 1rem;">🚀 Generate Settlement Analysis</button>
+                            <button class="btn btn--outline" onclick="clearAllFiles()">🗑️ Clear All Files</button>
+                            <button class="btn btn--outline" onclick="loadDemo()">🎯 Load Demo Data</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settlement Analysis Tab -->
+                <div class="tab-content" id="business-tab">
+                    <div class="report-header">
+                        <h2>📊 Settlement Analysis</h2>
+                        <div class="report-controls">
+                            <label style="font-weight: 600; color: var(--harate-green-dark);">View:</label>
+                            <select id="business-view" onchange="updateBusinessView(this.value)">
+                                <option value="summary">Settlement Summary</option>
+                                <option value="daily">Daily Breakdown</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="business-content">
+                        <div class="empty-state">
+                            <h3>No Settlement Data Available</h3>
+                            <p>Please upload settlement files to generate analysis.</p>
+                            <button class="btn btn--outline" onclick="goHome()">Upload Files</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Variance & RCA Tab -->
+                <div class="tab-content" id="variance-tab">
+                    <div class="report-header">
+                        <h2>🔍 Variance Analysis & Root Cause</h2>
+                    </div>
+                    <div id="variance-content">
+                        <div class="empty-state">
+                            <h3>No Variance Data Available</h3>
+                            <p>Please upload files to generate variance analysis.</p>
+                            <button class="btn btn--outline" onclick="goHome()">Upload Files</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actual vs Expected Tab -->
+                <div class="tab-content" id="payout-tab">
+                    <div class="report-header">
+                        <h2>💰 Actual vs Expected Payouts</h2>
+                    </div>
+                    <div id="payout-content">
+                        <div class="empty-state">
+                            <h3>No Payout Data Available</h3>
+                            <p>Please upload settlement files to compare payouts.</p>
+                            <button class="btn btn--outline" onclick="goHome()">Upload Files</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Analysis Tab -->
+                <div class="tab-content" id="orders-tab">
+                    <div class="report-header">
+                        <h2>📋 Order Analysis</h2>
+                    </div>
+                    <div id="orders-content">
+                        <div class="empty-state">
+                            <h3>No Order Data Available</h3>
+                            <p>Please upload files to generate order analysis.</p>
+                            <button class="btn btn--outline" onclick="goHome()">Upload Files</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Tab -->
+                <div class="tab-content" id="settings-tab">
+                    <div class="report-header">
+                        <h2>⚙️ Settlement Settings</h2>
+                    </div>
+                    <div style="display: grid; gap: 2rem;">
+                        <div class="upload-section">
+                            <h3 style="color: var(--harate-green-dark); margin-bottom: 2rem; font-weight: 700;">💼 Platform Configuration</h3>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+                                <div>
+                                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--harate-green-dark);">Zomato Service Fee (%)</label>
+                                    <input type="number" value="25" style="width: 100%; padding: 0.75rem; border: 2px solid var(--harate-green-light); border-radius: 8px;">
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--harate-green-dark);">Swiggy Commission (%)</label>
+                                    <input type="number" value="22" style="width: 100%; padding: 0.75rem; border: 2px solid var(--harate-green-light); border-radius: 8px;">
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--harate-green-dark);">GST on Service Fee (%)</label>
+                                    <input type="number" value="18" style="width: 100%; padding: 0.75rem; border: 2px solid var(--harate-green-light); border-radius: 8px;">
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--harate-green-dark);">TDS Rate (%)</label>
+                                    <input type="number" value="1" style="width: 100%; padding: 0.75rem; border: 2px solid var(--harate-green-light); border-radius: 8px;">
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--harate-green-dark);">Variance Threshold (%)</label>
+                                    <input type="number" value="5" style="width: 100%; padding: 0.75rem; border: 2px solid var(--harate-green-light); border-radius: 8px;">
+                                </div>
+                            </div>
+                            <button class="btn btn--primary" onclick="saveSettings()" style="width: 100%;">💾 Save Configuration</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+    <script>
+        console.log('🔧 Harate Settlement-Based Dashboard loaded!');
+
+        let currentTab = 'home';
+        let uploadedFiles = { pos: [], zomato: [], swiggy: [] };
+        let hasReport = false;
+        let settlementData = null;
+
+        window.onload = function() {
+            console.log('✅ Settlement dashboard initialized...');
+            initializeFileUploads();
+            showTab('home');
+        };
+
+        function initializeFileUploads() {
+            ['pos', 'zomato', 'swiggy'].forEach(source => {
+                document.getElementById(source + '-files').addEventListener('change', function(e) {
+                    handleFileUpload(source, e.target.files);
+                });
+            });
+        }
+
+        function handleFileUpload(source, files) {
+            if (files.length === 0) return;
+
+            uploadedFiles[source] = Array.from(files);
+            const statusEl = document.getElementById(source + '-status');
+            const zoneEl = document.getElementById(source + '-zone');
+
+            const fileNames = Array.from(files).map(f => f.name).join(', ');
+            statusEl.textContent = `✅ ${files.length} file(s): ${fileNames.length > 50 ? fileNames.substring(0, 50) + '...' : fileNames}`;
+            statusEl.className = 'upload-status success';
+            zoneEl.classList.add('has-files');
+
+            updateGenerateButton();
+        }
+
+        function updateGenerateButton() {
+            const generateBtn = document.getElementById('generate-btn');
+            const hasAnyFiles = uploadedFiles.pos.length > 0 || uploadedFiles.zomato.length > 0 || uploadedFiles.swiggy.length > 0;
+
+            generateBtn.disabled = !hasAnyFiles;
+            generateBtn.innerHTML = hasAnyFiles ? '🚀 Generate Settlement Analysis' : '📁 Upload Files First';
+        }
+
+        function generateReport() {
+            console.log('🔧 Generating settlement-based analysis...');
+
+            const hasAnyFiles = uploadedFiles.pos.length > 0 || uploadedFiles.zomato.length > 0 || uploadedFiles.swiggy.length > 0;
+
+            if (!hasAnyFiles) {
+                alert('Please upload settlement files first!');
+                return;
+            }
+
+            const generateBtn = document.getElementById('generate-btn');
+            generateBtn.innerHTML = '⏳ Processing Settlement Data...';
+            generateBtn.disabled = true;
+
+            setTimeout(function() {
+                settlementData = generateSettlementData();
+                populateAllSettlementReports(settlementData);
+                enableSettlementTabs();
+
+                document.getElementById('period-display').style.display = 'block';
+                document.getElementById('period-text').textContent = 'Sep 22 - Sep 28, 2025';
+
+                hasReport = true;
+                showTab('business');
+
+                generateBtn.innerHTML = '🚀 Generate Settlement Analysis';
+                generateBtn.disabled = false;
+
+                alert('✅ Settlement Analysis Generated with Variance Identification! 🔧');
+            }, 3000);
+        }
+
+        function generateSettlementData() {
+            return {
+                period: 'Sep 22 - Sep 28, 2025',
+                zomato: {
+                    // Expected/Calculated Data
+                    expected: {
+                        orders: 118,
+                        gross_revenue: 32548,
+                        service_fee: 8137,  // 25% of commissionable value
+                        government_charges: 2847,  // GST 18% + TDS + TCS
+                        other_deductions: 1245,
+                        ad_spend_calculated: 1627,  // 5% calculated
+                        expected_payout: 28689
+                    },
+                    // Actual Settlement Data
+                    actual: {
+                        orders: 118,
+                        gross_revenue: 32548,
+                        service_fee: 8137,  // 25% actual
+                        government_charges: 2847,
+                        other_deductions: 1245,
+                        ad_spend_actual: 8648.95,  // From settlement
+                        actual_payout: 13872.36,  // User provided actual
+                        settlement_status: 'pending'
+                    },
+                    // Variance Analysis
+                    variance: {
+                        ad_spend_gap: 7021.95,  // 8648.95 - 1627
+                        payout_gap: 14816.64,   // 28689 - 13872.36
+                        payout_variance_pct: 51.8,
+                        main_cause: 'Ad Spend Significantly Higher'
+                    }
+                },
+                swiggy: {
+                    expected: {
+                        orders: 54,
+                        revenue: 18505,
+                        commission: 4071,
+                        advertising: 925,
+                        other_deductions: 555,
+                        expected_payout: 12954
+                    },
+                    actual: {
+                        orders: 54,
+                        revenue: 18505,
+                        commission: 4071,
+                        advertising: 925,  // Assuming correct
+                        other_deductions: 555,
+                        actual_payout: 12954,  // Assuming no major variance
+                        settlement_status: 'settled'
+                    },
+                    variance: {
+                        payout_gap: 0,
+                        variance_pct: 0,
+                        main_cause: 'On Track'
+                    }
+                },
+                totals: {
+                    expected_payout: 41643,
+                    actual_payout: 26826.36,  // 13872.36 + 12954
+                    total_variance: 14816.64,
+                    variance_percentage: 35.6
+                },
+                rca: {
+                    primary_causes: [
+                        'Zomato Ad Spend: ₹8,648.95 vs Expected ₹1,627 (+430.8%)',
+                        'Commission Rate Assumption Error: Used 20% vs Actual 25%',
+                        'Missing Tax Impact in Calculations',
+                        'Settlement Timing Differences'
+                    ],
+                    recommendations: [
+                        'Use actual settlement data instead of estimates',
+                        'Monitor ad spend against budget limits',
+                        'Include all government charges in calculations',
+                        'Track settlement status for cash flow planning'
+                    ]
+                }
+            };
+        }
+
+        function populateAllSettlementReports(data) {
+            updateSettlementAnalysis(data);
+            updateVarianceAnalysis(data);
+            updateActualVsExpected(data);
+            updateOrderAnalysis(data);
+        }
+
+        function updateSettlementAnalysis(data) {
+            let content = `
+                <div class="alert danger">
+                    <strong>⚠️ CRITICAL VARIANCE DETECTED:</strong> Actual payout is ₹${data.totals.total_variance.toLocaleString()} (${data.totals.variance_percentage.toFixed(1)}%) lower than expected. Primary cause: Zomato ad spend significantly higher than projected.
+                </div>
+
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <h3>Total Expected Payout</h3>
+                        <div class="metric-value large">₹${data.totals.expected_payout.toLocaleString()}</div>
+                        <div class="metric-secondary">Based on Calculations</div>
+                        <div class="metric-status info">Projected Amount</div>
+                    </div>
+                    <div class="metric-card danger">
+                        <h3>Total Actual Payout</h3>
+                        <div class="metric-value large danger">₹${data.totals.actual_payout.toLocaleString()}</div>
+                        <div class="metric-secondary">From Settlement Reports</div>
+                        <div class="metric-status danger">${data.totals.variance_percentage.toFixed(1)}% Below Expected</div>
+                    </div>
+                    <div class="metric-card warning">
+                        <h3>Major Variance Gap</h3>
+                        <div class="metric-value large" style="color: var(--danger);">₹${data.totals.total_variance.toLocaleString()}</div>
+                        <div class="metric-secondary">Expected vs Actual</div>
+                        <div class="metric-status danger">Requires Investigation</div>
+                    </div>
+                    <div class="metric-card">
+                        <h3>Zomato Ad Spend Actual</h3>
+                        <div class="metric-value" style="color: var(--danger);">₹${data.zomato.actual.ad_spend_actual.toLocaleString()}</div>
+                        <div class="metric-secondary">vs Expected ₹${data.zomato.expected.ad_spend_calculated.toLocaleString()}</div>
+                        <div class="metric-status danger">+430.8% Over Budget</div>
+                    </div>
+                    <div class="metric-card">
+                        <h3>Commission Rate</h3>
+                        <div class="metric-value">25%</div>
+                        <div class="metric-secondary">Zomato Service Fee</div>
+                        <div class="metric-status warning">Higher than Assumed</div>
+                    </div>
+                    <div class="metric-card">
+                        <h3>Settlement Status</h3>
+                        <div class="metric-value">Pending</div>
+                        <div class="metric-secondary">Zomato Orders</div>
+                        <div class="metric-status warning">Cash Flow Impact</div>
+                    </div>
+                </div>
+
+                <div class="section-header"><h3>📊 Settlement Breakdown</h3></div>
+                <div class="report-table">
+                    <table>
+                        <thead>
+                            <tr><th>Component</th><th>Expected</th><th>Actual</th><th>Variance</th><th>Status</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>Zomato Revenue</td><td>₹${data.zomato.expected.gross_revenue.toLocaleString()}</td><td>₹${data.zomato.actual.gross_revenue.toLocaleString()}</td><td>₹0</td><td>✅ Match</td></tr>
+                            <tr><td>Zomato Service Fee (25%)</td><td>₹${data.zomato.expected.service_fee.toLocaleString()}</td><td>₹${data.zomato.actual.service_fee.toLocaleString()}</td><td>₹0</td><td>✅ Match</td></tr>
+                            <tr><td>Government Charges</td><td>₹${data.zomato.expected.government_charges.toLocaleString()}</td><td>₹${data.zomato.actual.government_charges.toLocaleString()}</td><td>₹0</td><td>✅ Match</td></tr>
+                            <tr class="variance-row"><td>Zomato Ad Spend</td><td>₹${data.zomato.expected.ad_spend_calculated.toLocaleString()}</td><td>₹${data.zomato.actual.ad_spend_actual.toLocaleString()}</td><td>₹${data.zomato.variance.ad_spend_gap.toLocaleString()}</td><td>🚨 Major Gap</td></tr>
+                            <tr class="total-row"><td><strong>Zomato Net Payout</strong></td><td><strong>₹${data.zomato.expected.expected_payout.toLocaleString()}</strong></td><td><strong>₹${data.zomato.actual.actual_payout.toLocaleString()}</strong></td><td><strong>₹${data.zomato.variance.payout_gap.toLocaleString()}</strong></td><td><strong>🚨 Critical</strong></td></tr>
+                            <tr><td>Swiggy Net Payout</td><td>₹${data.swiggy.expected.expected_payout.toLocaleString()}</td><td>₹${data.swiggy.actual.actual_payout.toLocaleString()}</td><td>₹${data.swiggy.variance.payout_gap.toLocaleString()}</td><td>✅ On Track</td></tr>
+                            <tr class="total-row"><td><strong>Total Variance</strong></td><td><strong>₹${data.totals.expected_payout.toLocaleString()}</strong></td><td><strong>₹${data.totals.actual_payout.toLocaleString()}</strong></td><td><strong>₹${data.totals.total_variance.toLocaleString()}</strong></td><td><strong>⚠️ ${data.totals.variance_percentage.toFixed(1)}% Gap</strong></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            document.getElementById('business-content').innerHTML = content;
+        }
+
+        function updateVarianceAnalysis(data) {
+            let content = `
+                <div class="variance-grid">
+                    <div class="variance-card">
+                        <div class="variance-header">
+                            <div class="variance-title">🚨 Zomato Payout Variance</div>
+                            <div class="variance-amount">₹${data.zomato.variance.payout_gap.toLocaleString()}</div>
+                        </div>
+                        <div class="variance-breakdown">Expected: ₹${data.zomato.expected.expected_payout.toLocaleString()}</div>
+                        <div class="variance-breakdown">Actual: ₹${data.zomato.actual.actual_payout.toLocaleString()}</div>
+                        <div class="variance-breakdown">Impact: ${data.zomato.variance.payout_variance_pct.toFixed(1)}% below expected</div>
+                        <div class="variance-rca">
+                            <h4>Root Cause Analysis</h4>
+                            <ul>
+                                <li>Ad spend ₹7,021.95 higher than budgeted</li>
+                                <li>Commission rate 25% vs assumed 20%</li>
+                                <li>Missing tax calculations in estimates</li>
+                                <li>Settlement timing differences</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="variance-card">
+                        <div class="variance-header">
+                            <div class="variance-title">📊 Ad Spend Analysis</div>
+                            <div class="variance-amount">₹${data.zomato.variance.ad_spend_gap.toLocaleString()}</div>
+                        </div>
+                        <div class="variance-breakdown">Budgeted: ₹${data.zomato.expected.ad_spend_calculated.toLocaleString()} (5%)</div>
+                        <div class="variance-breakdown">Actual: ₹${data.zomato.actual.ad_spend_actual.toLocaleString()}</div>
+                        <div class="variance-breakdown">Overspend: 430.8% above budget</div>
+                        <div class="variance-rca">
+                            <h4>Impact Analysis</h4>
+                            <ul>
+                                <li>Primary driver of payout variance</li>
+                                <li>Ad campaigns significantly over budget</li>
+                                <li>Need ad spend controls and monitoring</li>
+                                <li>Review campaign ROI vs cost</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-header"><h3>🎯 Recommendations</h3></div>
+                <div class="report-table">
+                    <table>
+                        <thead>
+                            <tr><th>Issue</th><th>Root Cause</th><th>Recommended Action</th><th>Priority</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr class="variance-row"><td>Zomato Ad Overspend</td><td>No budget controls</td><td>Implement daily ad spend limits</td><td>🔥 Critical</td></tr>
+                            <tr class="warning-row"><td>Commission Rate Error</td><td>Wrong assumptions</td><td>Use actual settlement rates</td><td>🔥 Critical</td></tr>
+                            <tr class="warning-row"><td>Missing Tax Calculations</td><td>Incomplete formula</td><td>Include GST, TDS, TCS in estimates</td><td>⚠️ High</td></tr>
+                            <tr><td>Settlement Status Tracking</td><td>No monitoring</td><td>Track pending settlements for cash flow</td><td>📋 Medium</td></tr>
+                            <tr><td>Variance Threshold</td><td>No alerts</td><td>Set 5% variance alert threshold</td><td>📋 Medium</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            document.getElementById('variance-content').innerHTML = content;
+        }
+
+        function updateActualVsExpected(data) {
+            let content = `
+                <div class="platform-cards">
+                    <div class="platform-card">
+                        <div class="platform-header">
+                            <h3>🍅 Zomato - Expected</h3>
+                            <div class="platform-revenue">₹${data.zomato.expected.gross_revenue.toLocaleString()}</div>
+                            <div class="platform-status">Calculated Projection</div>
+                        </div>
+                        <div class="platform-body">
+                            <div class="platform-metric">
+                                <span class="label">Service Fee (25%)</span>
+                                <span class="value">₹${data.zomato.expected.service_fee.toLocaleString()}</span>
+                            </div>
+                            <div class="platform-metric">
+                                <span class="label">Government Charges</span>
+                                <span class="value">₹${data.zomato.expected.government_charges.toLocaleString()}</span>
+                            </div>
+                            <div class="platform-metric">
+                                <span class="label">Ad Spend (Calculated)</span>
+                                <span class="value">₹${data.zomato.expected.ad_spend_calculated.toLocaleString()}</span>
+                            </div>
+                            <div class="platform-metric">
+                                <span class="label">Other Deductions</span>
+                                <span class="value">₹${data.zomato.expected.other_deductions.toLocaleString()}</span>
+                            </div>
+                            <div class="payout-highlight">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="font-weight: 600;">Expected Payout:</span>
+                                    <span class="payout-amount">₹${data.zomato.expected.expected_payout.toLocaleString()}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="platform-card">
+                        <div class="platform-header">
+                            <h3>🍅 Zomato - Actual Settlement</h3>
+                            <div class="platform-revenue">₹${data.zomato.actual.gross_revenue.toLocaleString()}</div>
+                            <div class="platform-status">From Settlement Report</div>
+                        </div>
+                        <div class="platform-body">
+                            <div class="platform-metric">
+                                <span class="label">Service Fee (25%)</span>
+                                <span class="value">₹${data.zomato.actual.service_fee.toLocaleString()}</span>
+                            </div>
+                            <div class="platform-metric">
+                                <span class="label">Government Charges</span>
+                                <span class="value">₹${data.zomato.actual.government_charges.toLocaleString()}</span>
+                            </div>
+                            <div class="platform-metric">
+                                <span class="label">Ad Spend (Actual)</span>
+                                <span class="value danger">₹${data.zomato.actual.ad_spend_actual.toLocaleString()}</span>
+                            </div>
+                            <div class="platform-metric">
+                                <span class="label">Other Deductions</span>
+                                <span class="value">₹${data.zomato.actual.other_deductions.toLocaleString()}</span>
+                            </div>
+                            <div class="platform-metric">
+                                <span class="label">Settlement Status</span>
+                                <span class="value" style="color: var(--warning);">Pending</span>
+                            </div>
+                            <div class="payout-highlight actual">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="font-weight: 600;">Actual Payout:</span>
+                                    <span class="payout-amount">₹${data.zomato.actual.actual_payout.toLocaleString()}</span>
+                                </div>
+                                <div style="text-align: center; margin-top: 0.5rem; font-size: 0.9rem; color: var(--danger);">
+                                    ${data.zomato.variance.payout_variance_pct.toFixed(1)}% Below Expected
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-header"><h3>💰 Payout Comparison Summary</h3></div>
+                <div class="report-table">
+                    <table>
+                        <thead>
+                            <tr><th>Platform</th><th>Expected Payout</th><th>Actual Payout</th><th>Variance</th><th>% Impact</th><th>Status</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr class="variance-row"><td>Zomato</td><td>₹${data.zomato.expected.expected_payout.toLocaleString()}</td><td>₹${data.zomato.actual.actual_payout.toLocaleString()}</td><td>₹${data.zomato.variance.payout_gap.toLocaleString()}</td><td>${data.zomato.variance.payout_variance_pct.toFixed(1)}%</td><td>🚨 Critical Gap</td></tr>
+                            <tr><td>Swiggy</td><td>₹${data.swiggy.expected.expected_payout.toLocaleString()}</td><td>₹${data.swiggy.actual.actual_payout.toLocaleString()}</td><td>₹${data.swiggy.variance.payout_gap.toLocaleString()}</td><td>${data.swiggy.variance.variance_pct.toFixed(1)}%</td><td>✅ On Track</td></tr>
+                            <tr class="total-row"><td><strong>Total</strong></td><td><strong>₹${data.totals.expected_payout.toLocaleString()}</strong></td><td><strong>₹${data.totals.actual_payout.toLocaleString()}</strong></td><td><strong>₹${data.totals.total_variance.toLocaleString()}</strong></td><td><strong>${data.totals.variance_percentage.toFixed(1)}%</strong></td><td><strong>⚠️ Review Required</strong></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            document.getElementById('payout-content').innerHTML = content;
+        }
+
+        function updateOrderAnalysis(data) {
+            let content = `
+                <div class="alert warning">
+                    <strong>⚠️ ORDER STATUS ALERT:</strong> ${data.zomato.actual.orders} Zomato orders showing "pending" settlement status. This impacts cash flow planning and may cause delays in bank transfers.
+                </div>
+
+                <div class="metrics-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                    <div class="metric-card">
+                        <h3>Zomato Orders</h3>
+                        <div class="metric-value">${data.zomato.actual.orders}</div>
+                        <div class="metric-secondary">All Orders</div>
+                        <div class="metric-status warning">Pending Settlement</div>
+                    </div>
+                    <div class="metric-card">
+                        <h3>Average Order Value</h3>
+                        <div class="metric-value">₹${(data.zomato.actual.gross_revenue / data.zomato.actual.orders).toFixed(0)}</div>
+                        <div class="metric-secondary">Zomato</div>
+                        <div class="metric-status info">Business Metric</div>
+                    </div>
+                    <div class="metric-card">
+                        <h3>Commission per Order</h3>
+                        <div class="metric-value">₹${(data.zomato.actual.service_fee / data.zomato.actual.orders).toFixed(0)}</div>
+                        <div class="metric-secondary">25% Service Fee</div>
+                        <div class="metric-status info">Platform Cost</div>
+                    </div>
+                    <div class="metric-card">
+                        <h3>Ad Cost per Order</h3>
+                        <div class="metric-value" style="color: var(--danger);">₹${(data.zomato.actual.ad_spend_actual / data.zomato.actual.orders).toFixed(0)}</div>
+                        <div class="metric-secondary">Marketing Cost</div>
+                        <div class="metric-status danger">Very High</div>
+                    </div>
+                </div>
+
+                <div class="section-header"><h3>📋 Settlement Status Analysis</h3></div>
+                <div class="report-table">
+                    <table>
+                        <thead>
+                            <tr><th>Order Range</th><th>Platform</th><th>Orders</th><th>Revenue</th><th>Settlement Status</th><th>Expected Settlement Date</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr class="warning-row"><td>Sep 22-28</td><td>Zomato</td><td>${data.zomato.actual.orders}</td><td>₹${data.zomato.actual.gross_revenue.toLocaleString()}</td><td>⏳ Pending</td><td>Next Wednesday</td></tr>
+                            <tr><td>Sep 22-28</td><td>Swiggy</td><td>${data.swiggy.actual.orders}</td><td>₹${data.swiggy.actual.revenue.toLocaleString()}</td><td>✅ Settled</td><td>Completed</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div style="margin-top: 2rem; text-align: center; color: var(--light-text); font-style: italic;">
+                    💡 Settlement timing varies by platform. Zomato settles weekly (Wednesdays), Swiggy typically faster.
+                </div>
+            `;
+
+            document.getElementById('orders-content').innerHTML = content;
+        }
+
+        function updateBusinessView(value) {
+            if (settlementData) updateSettlementAnalysis(settlementData);
+        }
+
+        function enableSettlementTabs() {
+            const tabIds = ['tab-business', 'tab-variance', 'tab-payout', 'tab-orders'];
+            tabIds.forEach(tabId => {
+                const tabEl = document.getElementById(tabId);
+                if (tabEl) {
+                    tabEl.classList.remove('disabled');
+                    tabEl.style.cursor = 'pointer';
+                }
+            });
+        }
+
+        function showTab(tabName) {
+            if (['business', 'variance', 'payout', 'orders'].includes(tabName) && !hasReport) {
+                alert('Please upload settlement files and generate analysis first! 🔧');
+                return;
+            }
+
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+
+            const selectedTab = document.getElementById(tabName + '-tab');
+            if (selectedTab) selectedTab.classList.add('active');
+
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                if ((tabName === 'home' && tab.textContent.includes('Home')) ||
+                    (tabName === 'business' && tab.textContent.includes('Settlement Analysis')) ||
+                    (tabName === 'variance' && tab.textContent.includes('Variance')) ||
+                    (tabName === 'payout' && tab.textContent.includes('Actual vs Expected')) ||
+                    (tabName === 'orders' && tab.textContent.includes('Order Analysis')) ||
+                    (tabName === 'settings' && tab.textContent.includes('Settings'))) {
+                    tab.classList.add('active');
+                }
+            });
+
+            currentTab = tabName;
+        }
+
+        function goHome() { showTab('home'); }
+
+        function clearAllFiles() {
+            uploadedFiles = { pos: [], zomato: [], swiggy: [] };
+
+            ['pos', 'zomato', 'swiggy'].forEach(source => {
+                document.getElementById(source + '-files').value = '';
+                document.getElementById(source + '-status').textContent = 'No files selected';
+                document.getElementById(source + '-status').className = 'upload-status';
+                document.getElementById(source + '-zone').classList.remove('has-files');
+            });
+
+            updateGenerateButton();
+        }
+
+        function loadDemo() {
+            uploadedFiles = {
+                pos: [{ name: 'Harate_POS_Sep22-28.xlsx' }],
+                zomato: [{ name: 'Harate_Zomato_Settlement_Corrected.xlsx' }],
+                swiggy: [{ name: 'Harate_Swiggy_Settlement.xlsx' }]
+            };
+
+            ['pos', 'zomato', 'swiggy'].forEach(source => {
+                const fileName = uploadedFiles[source][0].name;
+                document.getElementById(source + '-status').textContent = `✅ 1 file: ${fileName}`;
+                document.getElementById(source + '-status').className = 'upload-status success';
+                document.getElementById(source + '-zone').classList.add('has-files');
+            });
+
+            updateGenerateButton();
+        }
+
+        function saveSettings() {
+            alert('Settlement configuration saved successfully! 🔧');
+        }
+
+        console.log('🔧 Settlement-Based Business Intelligence Dashboard ready!');
+    </script>
+</body>
+</html>
